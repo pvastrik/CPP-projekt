@@ -54,7 +54,7 @@ public class Proov {
    }
 
     public static void main(String[] args) {
-        Paar<String[], int[][]> graafMat = maatriksiks("/mnt/c/Users/priid/kool/AA22/praks1/src/linnade_kaugused.tsv", 1000);
+        Paar<String[], int[][]> graafMat = maatriksiks("linnade_kaugused.tsv", 1000);
         String[] linnad = graafMat.esimene;
         int[][] mat = graafMat.teine;
         String[] tul = jõuame("Põltsamaa", 64, 2, linnad, mat);
