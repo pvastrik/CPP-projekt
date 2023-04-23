@@ -9,11 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     Proov
- * Method:    prooviLoopi
- * Signature: (I)V
+ * Method:    cppTukeldused
+ * Signature: ([DDI)I
  */
-JNIEXPORT void JNICALL Java_Proov_prooviLoopi
-  (JNIEnv *, jobject, jlong);
+JNIEXPORT jint JNICALL Java_Proov_cppTukeldused
+  (JNIEnv *, jobject, jdoubleArray, jdouble, jint);
+
+/*
+ * Class:     Proov
+ * Method:    cppJouame
+ * Signature: (Ljava/lang/String;II[Ljava/lang/String;[[I)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_Proov_cppJouame
+  (JNIEnv *, jobject, jstring, jint, jint, jobjectArray, jobjectArray);
 
 #ifdef __cplusplus
 }

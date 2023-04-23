@@ -3,4 +3,4 @@ project(projekt)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(projekt proov.cpp)
+add_executable(projekt proov.cpp graafid.h)
