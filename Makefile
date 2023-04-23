@@ -1,6 +1,7 @@
 JAVA_HOME_DIR := /usr/lib/jvm/java-17-openjdk-amd64
 install:
 	sudo apt update
+	sudo apt upgrade
 	sudo apt install openjdk-17-jdk-headless
 	sudo apt install build-essential
 
@@ -11,3 +12,7 @@ compile:
 
 java:
 	java -cp . -Djava.library.path=. Proov.java
+
+run:
+	make compile
+	make java
