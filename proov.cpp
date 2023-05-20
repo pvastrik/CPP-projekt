@@ -165,3 +165,94 @@ bool operator==(const Tipp &t1, const Tipp &t2) {
     return t1.m_info == t2.m_info;
 }
 
+
+/***********************************************/
+
+std::vector<long> sort(std::vector<long>& isikukoodid);
+
+std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVäärtus, int kohti);
+
+
+JNIEXPORT jlongArray JNICALL Java_Proov_cppSortIsikukoodid(JNIEnv *env, jobject obj, jlongArray a){
+TIMER();
+    long *arrayPtr= env->GetLongArrayElements(a,0);
+    sort(*arrayPtr);
+    return *arrayPtr;
+    //double *arrayPtr = env->GetDoubleArrayElements(a, 0);
+
+}
+
+void sort(std::vector<long>& isikukoodid) {
+    int suurus = isikukoodid.size();
+    std::vector<int> sagedus(2);
+    std::vector<long> sorteeritud(suurus);
+    for (long isik : isikukoodid) {
+        int indeks = static_cast<int>((isik / 10000000000L) + 1) % 2;
+        sagedus[indeks]++;
+    }
+    sagedus[1] += sagedus[0];
+    for (int i = suurus - 1; i >= 0; i--) {
+        int indeks = static_cast<int>((isikukoodid[i] / 10000000000L) + 1) % 2;
+        sorteeritud[sagedus[indeks] - 1] = isikukoodid[i];
+        sagedus[indeks]--;
+    }
+    std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
+    std::vector<long> isikukoodid2 = isikukoodid;
+    long kohaVäärtus = 10L;
+    for (int i = 0; i < 4; i++) {
+        isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 10);
+        kohaVäärtus *= 10L;
+    }
+    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 4);
+    kohaVäärtus *= 10L;
+    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 10);
+    kohaVäärtus *= 10L;
+    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 2);
+
+    sagedus = std::vector<int>(500);
+    for (long isik : isikukoodid2) {
+        int esimene = static_cast<int>(isik / 10000000000L);
+        int indeks;
+        if (esimene % 2 == 0) {
+            indeks = esimene * 50 + static_cast<int>((isik / 100000000) % 100);
+        } else {
+            indeks = (esimene + 1) * 50 + static_cast<int>((isik / 100000000) % 100);
+        }
+        sagedus[indeks]++;
+    }
+    for (int i = 1; i < 500; i++) {
+        sagedus[i] += sagedus[i - 1];
+    }
+    for (int i = suurus - 1; i >= 0; i--) {
+        int esimene = static_cast<int>(isikukoodid2[i] / 10000000000L);
+        int indeks;
+        if (esimene % 2 == 0) {
+            indeks = esimene * 50 + static_cast<int>((isikukoodid2[i] / 100000000) % 100);
+        } else {
+            indeks = (esimene + 1) * 50 + static_cast<int>((isikukoodid2[i] / 100000000) % 100);
+        }
+        sorteeritud[sagedus[indeks] - 1] = isikukoodid2[i];
+        sagedus[indeks]--;
+    }
+    std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
+}
+
+std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVäärtus, int kohti) {
+    int suurus = isikukoodid.size();
+    std::vector<int> sagedus(kohti);
+    std::vector<long> sorteeritud(suurus);
+    for (long l : isikukoodid) {
+        int indeks = static_cast<int>((l / kohaVäärtus) % 10);
+        sagedus[indeks]++;
+    }
+    for (int i = 1; i < kohti; i++) {
+        sagedus[i] += sagedus[i - 1];
+    }
+    for (int i = suurus - 1; i >= 0; i--) {
+        int indeks = static_cast<int>((isikukoodid[i] / kohaVäärtus) % 10);
+        sorteeritud[sagedus[indeks] - 1] = isikukoodid[i];
+        sagedus[indeks]--;
+    }
+    return sorteeritud;
+}
+

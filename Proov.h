@@ -23,6 +23,14 @@ JNIEXPORT jint JNICALL Java_Proov_cppTukeldused
 JNIEXPORT jobjectArray JNICALL Java_Proov_cppJouame
   (JNIEnv *, jobject, jstring, jint, jint, jobjectArray, jobjectArray);
 
+/*
+ * Class:     Proov
+ * Method:    cppSortIsikukoodid
+ * Signature: ([J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_Proov_cppSortIsikukoodid
+  (JNIEnv *, jobject, jlongArray);
+
 #ifdef __cplusplus
 }
 #endif

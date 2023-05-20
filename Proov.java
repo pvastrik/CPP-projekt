@@ -208,4 +208,5 @@ public class Proov {
 
     private native int cppTukeldused(double[] a, double p, int length);
     private native String[] cppJouame(String lahtelinn, int x, int k, String[] linnad, int[][] m);
+    private native long[] cppSortIsikukoodid(long[] isikukoodid);
 }
