@@ -7,6 +7,8 @@ import java.util.Queue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Calendar;
+
 public class Proov {
 
     static {
@@ -54,27 +56,40 @@ public class Proov {
    }
 
     public static void main(String[] args) {
-        Paar<String[], int[][]> graafMat = maatriksiks("linnade_kaugused.tsv", 1000);
-        String[] linnad = graafMat.esimene;
-        int[][] mat = graafMat.teine;
-        String[] tul = jõuame("Põltsamaa", 64, 2, linnad, mat);
-        Proov proov = new Proov();
+//         Paar<String[], int[][]> graafMat = maatriksiks("linnade_kaugused.tsv", 1000);
+//         String[] linnad = graafMat.esimene;
+//         int[][] mat = graafMat.teine;
+//         String[] tul = jõuame("Põltsamaa", 64, 2, linnad, mat);
+//         Proov proov = new Proov();
+//
+//         System.out.println(Arrays.toString(tul));
+//         tul = proov.cppJouame("Põltsamaa", 64, 2, linnad, mat);
+//
+//         System.out.println(Arrays.toString(tul));
+//         long n = 10000000L;
+//         double[] s = new double[]{1.0, 2.0, 3.0, 1.0, 2.0, 4.0, 5.0, 2.0 };
+//         //s = annaMassiiv(2000, 1, 14);
+//         var alg = System.currentTimeMillis();
+//         System.out.println(tukeldused(s, 7));
+//         System.out.println("Java aeg: " + (System.currentTimeMillis()-alg));
+//         alg = System.currentTimeMillis();
+//         System.out.println(proov.cppTukeldused(s,7, s.length));
+//         System.out.println("C++ aeg: " + (System.currentTimeMillis()-alg));
+            Proov proov = new Proov();
+            long[] isikud = new long[10000_000];
+            for (int i = 0; i < 10000_000; i++) {
+                isikud[i] = genereeriIsikukood();
+            }
+            //System.out.println(Arrays.toString(isikud));
+            //isikud = new long[]{21207274409L, 82702134101L, 78908120033L, 49203256017L, 77912117196L,65408285011L};
+            long aeg = System.currentTimeMillis();
+            sort(isikud);
+            System.out.println("Java: " + (System.currentTimeMillis() - aeg));
+            aeg = System.currentTimeMillis();
+            proov.cppSortIsikukoodid(isikud);
+            System.out.println("Cpp: " + (System.currentTimeMillis() - aeg));
 
-        System.out.println(Arrays.toString(tul));
-        tul = proov.cppJouame("Põltsamaa", 64, 2, linnad, mat);
-
-        System.out.println(Arrays.toString(tul));
-        long n = 10000000L;
-        double[] s = new double[]{1.0, 2.0, 3.0, 1.0, 2.0, 4.0, 5.0, 2.0 };
-        //s = annaMassiiv(2000, 1, 14);
-        var alg = System.currentTimeMillis();
-        System.out.println(tukeldused(s, 7));
-        System.out.println("Java aeg: " + (System.currentTimeMillis()-alg));
-        alg = System.currentTimeMillis();
-        System.out.println(proov.cppTukeldused(s,7, s.length));
-        System.out.println("C++ aeg: " + (System.currentTimeMillis()-alg));
-
-    }
+           }
      /*
             Traat pikkusega p lõigatakse tükkideks (tükkide pikkused on positiivsed). Lubatud traadipikkuste väärtused
             on etteantud reaalarvuliste väärtustega massiiviga a. Tükeldamisel peab arvestama, et sama pikkusega traate
@@ -204,6 +219,165 @@ public class Proov {
     public static double[] annaMassiiv(int n, int min, int max) {
         return new Random().doubles(n, min, max).toArray();
     }
+
+     static long genereeriIsikukood() {
+            java.util.concurrent.ThreadLocalRandom juhus = java.util.concurrent.ThreadLocalRandom.current();
+            Calendar kalender = new java.util.GregorianCalendar();
+            kalender.setTime(new java.util.Date(juhus.nextLong(-5364669600000L, 7258024800000L)));
+            long kood = ((kalender.get(Calendar.YEAR) - 1700) / 100 * 2 - juhus.nextInt(2)) * (long) Math.pow(10, 9) +
+                    kalender.get(Calendar.YEAR) % 100 * (long) Math.pow(10, 7) +
+                    (kalender.get(Calendar.MONTH) + 1) * (long) Math.pow(10, 5) +
+                    kalender.get(Calendar.DAY_OF_MONTH) * (long) Math.pow(10, 3) +
+                    juhus.nextLong(1000);
+            int korrutisteSumma = 0;
+            int[] IAstmeKaalud = {1, 2, 3, 4, 5, 6, 7, 8, 9, 1};
+            for (int i = 0; i < 10; i++) korrutisteSumma += kood / (long) Math.pow(10, i) % 10 * IAstmeKaalud[9 - i];
+            int kontroll = korrutisteSumma % 11;
+            if (kontroll == 10) {
+                korrutisteSumma = 0;
+                int[] IIAstmeKaalud = {3, 4, 5, 6, 7, 8, 9, 1, 2, 3};
+                for (int i = 0; i < 10; i++) korrutisteSumma += kood / (long) Math.pow(10, i) % 10 * IIAstmeKaalud[9 - i];
+                kontroll = korrutisteSumma % 11;
+                kontroll = kontroll < 10 ? kontroll : 0;
+            }
+            return kood * 10 + kontroll;
+        }
+
+
+    static void countingSort(List<Long> array, int size, long place, int vahemik) {
+        /**
+         * @Funk - Rakendab counting sort
+         */
+        long[] output = new long[size + 1];
+        long max = array.get(0);
+        for (int i = 1; i < size; i++) {
+            if (array.get(0) > max)
+                max = array.get(0);
+        }
+        long[] count = new long[vahemik];
+
+
+        // Calculate count of elements
+        for (int i = 0; i < size; i++) {
+            count[(int) ((array.get(i) / place) % 10)]++;
+        }
+        // Calculate cumulative count
+        for (int i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+        }
+        // Place the elements in sorted order
+        for (int i = size - 1; i >= 0; i--) {
+            output[(int) (count[(int) ((array.get(i) / place) % 10)] - 1)] = array.get(i);
+            count[(int) ((array.get(i) / place) % 10)]--;
+        }
+
+        for (int i = 0; i < size; i++)
+            array.set(i,output[i]);
+    }
+
+
+    //Jaga kohe alguses 1 ja 2, 3 ja 4, 5 ja 6 jne ära ja käsitle neid eraldi.
+    static List<Long> radixSort(List<Long> list, int size) {
+        // Get maximum element
+        long max = 8991231999L;
+        /**Arrays.stream(array).forEach(id -> {
+            id /= 10;
+            System.out.println(id);
+        });*/
+
+        // Apply counting sort to sort elements based on place value.
+        //for (int place = 1; max / place > 10; place *= 10)
+        countingSort(list, size, 1,10); //10
+        countingSort(list, size, 10,10); //10
+        countingSort(list, size, 100,10); //10
+        countingSort(list, size, 1000,10); //10
+        countingSort(list, size, 10000,10); //4
+        countingSort(list, size, 100000,10); //10
+        countingSort(list, size, 1000000,10); //2
+        countingSort(list, size, 10000000,10); //10
+        countingSort(list, size, 100000000,10); //10
+        countingSort(list, size, 1000000000,10); //10
+
+        return list;
+    }
+
+
+
+    /** Sorteerib isikukoodid sünniaja järgi:
+     * <ul style="list-style-type:none">
+     *     <li>a) järjestuse aluseks on sünniaeg, vanemad inimesed on eespool;</li>
+     *     <li>b) kui sünniajad on võrdsed, määrab järjestuse isikukoodi järjekorranumber (kohad 8-10);</li>
+     *     <li>c) kui ka järjekorranumber on võrdne, siis määrab järjestuse esimene number.</li>
+     * </ul>
+     * @param isikukoodid sorteeritav isikukoodide massiiv
+     */
+    public static void sort(long[] isikukoodid){
+        /**radixSort(isikukoodid, isikukoodid.length);
+        for (int i = 0; i < isikukoodid.length; i++) {
+            int kontroll=security(isikukoodid[i]);
+            isikukoodid[i]=isikukoodid[i]*10+kontroll;
+        }*/
+        List<Long> list= new ArrayList<>();
+        for (int i = 0; i < isikukoodid.length; i++) {
+            list.add(isikukoodid[i]);
+        }
+        countingSort(list, list.size(), 1000000000L, 10);
+
+        List<Long> ykskaks= new ArrayList<>();
+        List<Long> kolmneli= new ArrayList<>();
+        List<Long> viiskuus= new ArrayList<>();
+        List<Long> seitsekaheksa= new ArrayList<>();
+
+        for (int i = 0; i < isikukoodid.length; i++) {
+            //isikukoodid[i]=isikukoodid[i]/10;
+            if(list.get(i)<30000000000L){
+                ykskaks.add(list.get(i));
+            }
+            else if(list.get(i)<50000000000L){
+                kolmneli.add(list.get(i));
+            }
+            else if(list.get(i)<70000000000L){
+                viiskuus.add(list.get(i));
+            }
+            else if(list.get(i)<90000000000L){
+                seitsekaheksa.add(list.get(i));
+            }
+        }
+        int isikukoodidindex=0;
+        if(ykskaks.size()>0){
+            List<Long> yk= radixSort(ykskaks, ykskaks.size());
+            for (Long aLong : yk) {
+                isikukoodid[isikukoodidindex] = aLong;
+                isikukoodidindex += 1;
+            }
+        }
+        if(kolmneli.size()>0){
+            List<Long> kn= radixSort(kolmneli,kolmneli.size());
+            for (Long aLong : kn) {
+                isikukoodid[isikukoodidindex]=aLong;
+                isikukoodidindex+=1;
+            }
+        }
+        if(viiskuus.size()>0){
+            List<Long> vk= radixSort(viiskuus,viiskuus.size());
+            for (Long aLong : vk) {
+                isikukoodid[isikukoodidindex]=aLong;
+                isikukoodidindex+=1;
+            }
+        }
+        if(seitsekaheksa.size()>0){
+            List<Long> sk= radixSort(seitsekaheksa,seitsekaheksa.size());
+            for (Long aLong : sk) {
+                isikukoodid[isikukoodidindex]=aLong;
+                isikukoodidindex+=1;
+            }
+        }
+    }
+
+
+
+
+
 
 
     private native int cppTukeldused(double[] a, double p, int length);

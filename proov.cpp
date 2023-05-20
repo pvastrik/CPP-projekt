@@ -168,16 +168,20 @@ bool operator==(const Tipp &t1, const Tipp &t2) {
 
 /***********************************************/
 
-std::vector<long> sort(std::vector<long>& isikukoodid);
+void sort(std::vector<long>& isikukoodid);
 
-std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVäärtus, int kohti);
+std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaartus, int kohti);
 
 
 JNIEXPORT jlongArray JNICALL Java_Proov_cppSortIsikukoodid(JNIEnv *env, jobject obj, jlongArray a){
 TIMER();
-    long *arrayPtr= env->GetLongArrayElements(a,0);
-    sort(*arrayPtr);
-    return *arrayPtr;
+    jsize size = env->GetArrayLength( a );
+    std::vector<long> input( size );
+    env->GetLongArrayRegion( a, jsize{0}, size, &input[0] );
+    sort(input);
+    jlongArray longArray = env->NewLongArray(input.size());
+
+    return longArray;
     //double *arrayPtr = env->GetDoubleArrayElements(a, 0);
 
 }
