@@ -3,13 +3,19 @@
 #include <chrono>
 #include <bits/stdc++.h>
 #include "graafid.h"
+#include "tukeldused.h"
+#include "isikukoodid.h"
 
 #define TIMER_ENABLE = 0
 #ifdef TIMER_ENABLE
-#define TIMER() Timer();
+#define TIMER() Timer timer();
 #else
 #define TIMER
 #endif
+
+/**
+ * @Funktsioon: Timer, mis mõõdab, kui kaua kood ülesannet lahendab.
+ */
 struct Timer{
     std::chrono::time_point<std::chrono::high_resolution_clock> algus = std::chrono::high_resolution_clock::now();
     Timer() {
@@ -23,145 +29,114 @@ struct Timer{
 };
 
 
-
+/**
+ * @Funktsionaalsus: Teisendab javast tulnud array vectoriks ning teostab traadi jupitamise ülesande lahendamiseks vajaliku töö.
+ * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "a" on Java Array, kus on juppide pikkused.
+ * "p" on minimaalse jupi pikkus. "n" on tükelduste arv.
+ * @Returns: Sorteeritud isikukoodide Java Array.
+ */
 JNIEXPORT jint JNICALL Java_Proov_cppTukeldused(JNIEnv *env, jobject obj, jdoubleArray a, jdouble p, jint n) {
-    TIMER();
     double *arrayPtr = env->GetDoubleArrayElements(a, 0);
     std::sort(arrayPtr, arrayPtr+n);
     return tukeldusedRek(arrayPtr, p, arrayPtr[0], 0, n);
 
 }
 
+/**
+ * @Funktsionaalsus: Teisendab javast tulnud informatsiooni ning teostab linnast linna liikumise ülesande.
+ * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "lahtelinn" on linn, kust minema hakkame.
+ * "x" on laadimiskordade arv. "k" on elektriauto aku suurus (km), "linnad" on linnade massiiv, "m" on graafi esitus maatriksina.
+ * @Returns: Java array linnadest, kuhu saame sõita.
+ */
 JNIEXPORT jobjectArray JNICALL Java_Proov_cppJouame(JNIEnv *env, jobject obj, jstring lahtelinn, jint x, jint k, jobjectArray linnad, jobjectArray m) {
     int rows = env->GetArrayLength(m);
     jintArray firstRow = (jintArray)(env->GetObjectArrayElement(m, 0));
     int cols = env->GetArrayLength(firstRow);
 
-    std::vector<std::vector<int>*> *mat = new std::vector<std::vector<int>*>;
+    std::vector<std::vector<int>> mat;
     int *row = env->GetIntArrayElements(firstRow, 0);
-    std::vector<int> *rowVec = new std::vector<int>;
-    for (int i = 0; i < cols; ++i) {
-        rowVec->push_back(row[0]);
-    }
-    mat->push_back(rowVec);
+
     for (int i = 1; i < rows; ++i) {
-        rowVec = new std::vector<int>;
+        std::vector<int> rowVec;
         jintArray currentRow = (jintArray)(env->GetObjectArrayElement(m, i));
         row = env->GetIntArrayElements(currentRow, 0);
         for (int j = 0; j < cols; ++j) {
-            rowVec->push_back(row[j]);
+            rowVec.push_back(row[j]);
         }
-        mat->push_back(rowVec);
+        mat.push_back(rowVec);
     }
 
     int linnu = env->GetArrayLength(linnad);
-    std::string linnaArr[linnu];
+    std::vector<std::string> linnaVec;
     for (int i = 0; i < linnu; ++i) {
         jstring linnString = (jstring)(env->GetObjectArrayElement(linnad, i));
-        linnaArr[i] = env->GetStringUTFChars(linnString, 0);
+        linnaVec.push_back(env->GetStringUTFChars(linnString, 0));
     }
     std::string lahteString = env->GetStringUTFChars(lahtelinn, 0);
-    std::vector<std::string> *saab = new std::vector<std::string>();
-    std::vector<Tipp> *graaf = new std::vector<Tipp>();
-    jouame(lahteString, x, k, linnaArr, linnu, mat, graaf, saab);
-    for (auto &s : *saab) {
-        std::cout <<s<<"\n";
-    }
+
+    auto algus = std::chrono::high_resolution_clock::now();
+    auto saab = jouame(lahteString, x, k, linnaVec, mat);
+    auto lopp = std::chrono::high_resolution_clock::now();
+    auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
+    std::cout << "Aega kulus: " << aeg.count() <<" ms\n";
+
     jclass stringClass = env->FindClass("java/lang/String");
-    jobjectArray stringArray = env->NewObjectArray(saab->size(), stringClass, 0);
-    for ( int i = 0; i < saab->size(); ++i ) {
-        std::string s = saab->at(i);
+    jobjectArray stringArray = env->NewObjectArray(saab.size(), stringClass, 0);
+    for ( int i = 0; i < saab.size(); ++i ) {
+        std::string s = saab.at(i);
         jstring javaString = env->NewStringUTF( s.c_str() );
         env->SetObjectArrayElement( stringArray, i, javaString);
     }
     return stringArray;
 }
 
-int tukeldusedRek(double *a, double p, double min, int i, int len) {
-    int kokku = 0;
-    if (p < min) {
-        if (p >= 0) return 1;
-        return 0;
-    }
 
-    for (; i < len; i++) {
-        if (a[i] > p) break;
-        kokku += tukeldusedRek(a, p - a[i], min, i, len);
-    }
-    return kokku;
 
-}
 
-int getIndex(std::string *arr, std::string s, int n) {
-    std::cout << n<<"\n";
-    for (int i = 0; i < n; ++i) {
-        if (*(arr+i) == s) return i;
-    }
-    return -1;
-}
 
-void looGraafMaatriksist(std::vector<std::vector<int>*> *m, int max, std::vector<Tipp> *graaf) {
-    int length = m->size();
-    std::cout<<length<<"\n";
-    for (int i = 0; i < length; ++i) {
-        Tipp tipp(0);
-        if (graaf->size() <= i) {
-            tipp = Tipp(i);
-            graaf->push_back(tipp);
-        } else {
-            tipp = graaf->at(i);
-        }
+/*****************ISIKUKOODIDE SORTEERIMINE*********************/
 
-        for (int j = 0; j < length; j++) {
-            Tipp teine(0);
-            if (j >= graaf->size()) {
-                teine = Tipp(j);
-                graaf->push_back(teine);
-            } else {
-                teine = graaf->at(j);
-            }
-            if (m->at(i)->at(j) > 0 && m->at(i)->at(j) <= max) {
-                Kaar kaar = Kaar(m->at(i)->at(j), tipp, teine);
-                tipp.m_kaared->push_back(kaar);
-            }
-        }
 
-    }
-}
 
-void jouame(std::string lahtelinn, int x, int k, std::string *linnad, int linnu, std::vector<std::vector<int>*> *m, std::vector<Tipp> *graaf, std::vector<std::string> *saab){
-    int lahte = getIndex(linnad, lahtelinn, linnu);
-    std::vector<Tipp> labitud;
+/**
+    * @Funktsionaalsus: Teisendab javast tulnud array vectoriks, teostab vajaliku töö ning konventeerib seejärel tagasi.
+    * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "a" on Java Array, kus on isikukoodid.
+    * @Returns: Sorteeritud isikukoodide Java Array.
+ */
+JNIEXPORT jlongArray JNICALL Java_Proov_cppSortIsikukoodid(JNIEnv *env, jobject obj, jlongArray a){
+    jsize size = env->GetArrayLength( a );
+    std::vector<long> input( size );
+    env->GetLongArrayRegion( a, jsize{0}, size, &input[0] );
+    auto algus = std::chrono::high_resolution_clock::now();
+    sort(input);
+    auto lopp = std::chrono::high_resolution_clock::now();
+    auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
+    std::cout << "Aega kulus: " << aeg.count() <<" ms\n";
+    jlongArray longArray = env->NewLongArray(input.size());
 
-    looGraafMaatriksist(m, x, graaf);
-    Tipp praegune = graaf->at(lahte);
-    std::queue<Kaar> jarts;
-    for (Kaar &kaar : *praegune.m_kaared) {
-        jarts.push(kaar);
-    }
-
-    labitud.push_back(praegune);
-    while(!jarts.empty()) {
-        Kaar prg = jarts.front();
-        jarts.pop();
-        praegune = prg.m_lopp;
-        if (std::find(labitud.begin(), labitud.end(), praegune) == std::end(labitud)) {
-            for (Kaar &kaar : *praegune.m_kaared) {
-                if (std::find(labitud.begin(), labitud.end(), kaar.m_lopp) == std::end(labitud)) {
-                    jarts.push(kaar);
-                }
-            }
-            praegune.m_kaari = prg.m_algus.m_kaari + 1;
-            if (praegune.m_kaari == k) {
-                saab->push_back(linnad[praegune.m_info]);
-            }
-            labitud.push_back(praegune);
-        }
-    }
+    return longArray;
+    //double *arrayPtr = env->GetDoubleArrayElements(a, 0);
 
 }
 
-bool operator==(const Tipp &t1, const Tipp &t2) {
-    return t1.m_info == t2.m_info;
-}
 
+
+
+JNIEXPORT jobjectArray JNICALL Java_Proov_cppGraafiYlesanne(JNIEnv *env, jobject jobj, jstring failinimi, jstring lahtelinn, jint laadimistearv, jint maxkaugus) {
+    std::string c_failinimi = env->GetStringUTFChars(failinimi, 0);
+    std::string c_lahtelinn = env->GetStringUTFChars(lahtelinn, 0);
+    auto paar = maatriksiks(c_failinimi, maxkaugus);
+    std::vector<std::string> linnad = jouame(c_lahtelinn, maxkaugus, laadimistearv, paar.linnad, paar.matrix);
+
+    jclass stringClass = env->FindClass("java/lang/String");
+    jobjectArray stringArray = env->NewObjectArray(linnad.size(), stringClass, 0);
+    for ( int i = 0; i < linnad.size(); ++i ) {
+        std::string s = linnad.at(i);
+        jstring javaString = env->NewStringUTF( s.c_str() );
+        env->SetObjectArrayElement( stringArray, i, javaString);
+    }
+//    env->ReleaseStringUTFChars(lahtelinn, c_lahtelinn);
+//    env->ReleaseStringUTFChars(failinimi, c_failinimi);
+
+    return stringArray;
+}
