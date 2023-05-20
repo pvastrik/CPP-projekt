@@ -3,10 +3,12 @@
 #include <chrono>
 #include <bits/stdc++.h>
 #include "graafid.h"
+#include "tukeldused.h"
+#include "isikukoodid.h"
 
 #define TIMER_ENABLE = 0
 #ifdef TIMER_ENABLE
-#define TIMER() Timer();
+#define TIMER() Timer timer();
 #else
 #define TIMER
 #endif
@@ -34,7 +36,6 @@ struct Timer{
  * @Returns: Sorteeritud isikukoodide Java Array.
  */
 JNIEXPORT jint JNICALL Java_Proov_cppTukeldused(JNIEnv *env, jobject obj, jdoubleArray a, jdouble p, jint n) {
-    TIMER();
     double *arrayPtr = env->GetDoubleArrayElements(a, 0);
     std::sort(arrayPtr, arrayPtr+n);
     return tukeldusedRek(arrayPtr, p, arrayPtr[0], 0, n);
@@ -52,163 +53,50 @@ JNIEXPORT jobjectArray JNICALL Java_Proov_cppJouame(JNIEnv *env, jobject obj, js
     jintArray firstRow = (jintArray)(env->GetObjectArrayElement(m, 0));
     int cols = env->GetArrayLength(firstRow);
 
-    std::vector<std::vector<int>*> *mat = new std::vector<std::vector<int>*>;
+    std::vector<std::vector<int>> mat;
     int *row = env->GetIntArrayElements(firstRow, 0);
-    std::vector<int> *rowVec = new std::vector<int>;
-    for (int i = 0; i < cols; ++i) {
-        rowVec->push_back(row[0]);
-    }
-    mat->push_back(rowVec);
+
     for (int i = 1; i < rows; ++i) {
-        rowVec = new std::vector<int>;
+        std::vector<int> rowVec;
         jintArray currentRow = (jintArray)(env->GetObjectArrayElement(m, i));
         row = env->GetIntArrayElements(currentRow, 0);
         for (int j = 0; j < cols; ++j) {
-            rowVec->push_back(row[j]);
+            rowVec.push_back(row[j]);
         }
-        mat->push_back(rowVec);
+        mat.push_back(rowVec);
     }
 
     int linnu = env->GetArrayLength(linnad);
-    std::string linnaArr[linnu];
+    std::vector<std::string> linnaVec;
     for (int i = 0; i < linnu; ++i) {
         jstring linnString = (jstring)(env->GetObjectArrayElement(linnad, i));
-        linnaArr[i] = env->GetStringUTFChars(linnString, 0);
+        linnaVec.push_back(env->GetStringUTFChars(linnString, 0));
     }
     std::string lahteString = env->GetStringUTFChars(lahtelinn, 0);
-    std::vector<std::string> *saab = new std::vector<std::string>();
-    std::vector<Tipp> *graaf = new std::vector<Tipp>();
-    jouame(lahteString, x, k, linnaArr, linnu, mat, graaf, saab);
-    for (auto &s : *saab) {
-        std::cout <<s<<"\n";
-    }
+
+    auto algus = std::chrono::high_resolution_clock::now();
+    auto saab = jouame(lahteString, x, k, linnaVec, mat);
+    auto lopp = std::chrono::high_resolution_clock::now();
+    auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
+    std::cout << "Aega kulus: " << aeg.count() <<" ms\n";
+
     jclass stringClass = env->FindClass("java/lang/String");
-    jobjectArray stringArray = env->NewObjectArray(saab->size(), stringClass, 0);
-    for ( int i = 0; i < saab->size(); ++i ) {
-        std::string s = saab->at(i);
+    jobjectArray stringArray = env->NewObjectArray(saab.size(), stringClass, 0);
+    for ( int i = 0; i < saab.size(); ++i ) {
+        std::string s = saab.at(i);
         jstring javaString = env->NewStringUTF( s.c_str() );
         env->SetObjectArrayElement( stringArray, i, javaString);
     }
     return stringArray;
 }
 
-/**
- * @Funktsionaalsus: Tükeldab rekursiivselt jupi sobivateks pikkusteks.
- * @Parameetrid: "a" on massiiv, kus on juppide pikkused. "p" on järeloleva traadi pikkus. "min" on minimaalse jupi pikkus. "i" on tükelduste arv. "len" on traadi pikkus.
- * @Returns: Sorteeritud isikukoodide Java Array.
- */
-int tukeldusedRek(double *a, double p, double min, int i, int len) {
-    int kokku = 0;
-    if (p < min) {
-        if (p >= 0) return 1;
-        return 0;
-    }
-
-    for (; i < len; i++) {
-        if (a[i] > p) break;
-        kokku += tukeldusedRek(a, p - a[i], min, i, len);
-    }
-    return kokku;
-
-}
-
-/**
- * @Funktsionaalsus: Leiab linna indeksi arrays.
- * @Parameetrid: "arr" on linnade massiiv. "s" on otsitava linna nimi. "n" on .
- * @Tagastab: Otsitava linna indeksi linnade arrays.
- */
-int getIndex(std::string *arr, std::string s, int n) {
-    std::cout << n<<"\n";
-    for (int i = 0; i < n; ++i) {
-        if (*(arr+i) == s) return i;
-    }
-    return -1;
-}
-
-/**
- * @Funktsionaalsus: Loob linnade maatriksist graafi.
- * @Parameetrid: "m" on maatriks. "max" on maksimaalne pikkus. "graaf" on graaf mida hakkame looma.
- */
-void looGraafMaatriksist(std::vector<std::vector<int>*> *m, int max, std::vector<Tipp> *graaf) {
-    int length = m->size();
-    std::cout<<length<<"\n";
-    for (int i = 0; i < length; ++i) {
-        Tipp tipp(0);
-        if (graaf->size() <= i) {
-            tipp = Tipp(i);
-            graaf->push_back(tipp);
-        } else {
-            tipp = graaf->at(i);
-        }
-
-        for (int j = 0; j < length; j++) {
-            Tipp teine(0);
-            if (j >= graaf->size()) {
-                teine = Tipp(j);
-                graaf->push_back(teine);
-            } else {
-                teine = graaf->at(j);
-            }
-            if (m->at(i)->at(j) > 0 && m->at(i)->at(j) <= max) {
-                Kaar kaar = Kaar(m->at(i)->at(j), tipp, teine);
-                tipp.m_kaared->push_back(kaar);
-            }
-        }
-
-    }
-}
-
-
-/**
- * @Funktsioon: Meetod antud laadimiste arvu kaugusel olevate linnade leidmiseks
- * @Parameetrid: lähtelinn, laadimiskordade arv x, elektriauto aku suurus (km) k, linnade massiiv, linnade hulk ,graafi esitus maatriksina, graaf ise, array linnadest kuhu saame sõita.
- * @Tulemus: linnade massiiv, kuhu antu akuga lühim tee võtab täpselt k laadimist ehksiis k linnadevahelist sõitu
- * */
-void jouame(std::string lahtelinn, int x, int k, std::string *linnad, int linnu, std::vector<std::vector<int>*> *m, std::vector<Tipp> *graaf, std::vector<std::string> *saab){
-    int lahte = getIndex(linnad, lahtelinn, linnu);
-    std::vector<Tipp> labitud;
-
-    looGraafMaatriksist(m, x, graaf);
-    Tipp praegune = graaf->at(lahte);
-    std::queue<Kaar> jarts;
-    for (Kaar &kaar : *praegune.m_kaared) {
-        jarts.push(kaar);
-    }
-
-    labitud.push_back(praegune);
-    while(!jarts.empty()) {
-        Kaar prg = jarts.front();
-        jarts.pop();
-        praegune = prg.m_lopp;
-        if (std::find(labitud.begin(), labitud.end(), praegune) == std::end(labitud)) {
-            for (Kaar &kaar : *praegune.m_kaared) {
-                if (std::find(labitud.begin(), labitud.end(), kaar.m_lopp) == std::end(labitud)) {
-                    jarts.push(kaar);
-                }
-            }
-            praegune.m_kaari = prg.m_algus.m_kaari + 1;
-            if (praegune.m_kaari == k) {
-                saab->push_back(linnad[praegune.m_info]);
-            }
-            labitud.push_back(praegune);
-        }
-    }
-
-}
-
-bool operator==(const Tipp &t1, const Tipp &t2) {
-    return t1.m_info == t2.m_info;
-}
 
 
 
 
 /*****************ISIKUKOODIDE SORTEERIMINE*********************/
 
-//Eeldefineerimised
-void sort(std::vector<long>& isikukoodid);
 
-std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaartus, int kohti);
 
 /**
     * @Funktsionaalsus: Teisendab javast tulnud array vectoriks, teostab vajaliku töö ning konventeerib seejärel tagasi.
@@ -216,11 +104,14 @@ std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaart
     * @Returns: Sorteeritud isikukoodide Java Array.
  */
 JNIEXPORT jlongArray JNICALL Java_Proov_cppSortIsikukoodid(JNIEnv *env, jobject obj, jlongArray a){
-TIMER();
     jsize size = env->GetArrayLength( a );
     std::vector<long> input( size );
     env->GetLongArrayRegion( a, jsize{0}, size, &input[0] );
+    auto algus = std::chrono::high_resolution_clock::now();
     sort(input);
+    auto lopp = std::chrono::high_resolution_clock::now();
+    auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
+    std::cout << "Aega kulus: " << aeg.count() <<" ms\n";
     jlongArray longArray = env->NewLongArray(input.size());
 
     return longArray;
@@ -228,88 +119,24 @@ TIMER();
 
 }
 
-/**
-    * @Funktsionaalsus: Sorteerib isikukoodid sünniaja järgi
-    * a) järjestuse aluseks on sünniaeg, vanemad inimesed on eespool.
-    * b) kui sünniajad on võrdsed, määrab järjestuse isikukoodi järjekorranumber (kohad 8-10).
-    * c) kui ka järjekorranumber on võrdne, siis määrab järjestuse esimene number.
-    * @Parameetrid: isikukoodid sorteeritav isikukoodide massiiv
- */
-void sort(std::vector<long>& isikukoodid) {
-    int suurus = isikukoodid.size();
-    std::vector<int> sagedus(2);
-    std::vector<long> sorteeritud(suurus);
-    for (long isik : isikukoodid) {
-        int indeks = static_cast<int>((isik / 10000000000L) + 1) % 2;
-        sagedus[indeks]++;
-    }
-    sagedus[1] += sagedus[0];
-    for (int i = suurus - 1; i >= 0; i--) {
-        int indeks = static_cast<int>((isikukoodid[i] / 10000000000L) + 1) % 2;
-        sorteeritud[sagedus[indeks] - 1] = isikukoodid[i];
-        sagedus[indeks]--;
-    }
-    std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
-    std::vector<long> isikukoodid2 = isikukoodid;
-    long kohaVaartus = 10L;
-    for (int i = 0; i < 4; i++) {
-        isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 10);
-        kohaVaartus *= 10L;
-    }
-    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 4);
-    kohaVaartus *= 10L;
-    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 10);
-    kohaVaartus *= 10L;
-    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 2);
 
-    sagedus = std::vector<int>(500);
-    for (long isik : isikukoodid2) {
-        int esimene = static_cast<int>(isik / 10000000000L);
-        int indeks;
-        if (esimene % 2 == 0) {
-            indeks = esimene * 50 + static_cast<int>((isik / 100000000) % 100);
-        } else {
-            indeks = (esimene + 1) * 50 + static_cast<int>((isik / 100000000) % 100);
-        }
-        sagedus[indeks]++;
+
+
+JNIEXPORT jobjectArray JNICALL Java_Proov_cppGraafiYlesanne(JNIEnv *env, jobject jobj, jstring failinimi, jstring lahtelinn, jint laadimistearv, jint maxkaugus) {
+    std::string c_failinimi = env->GetStringUTFChars(failinimi, 0);
+    std::string c_lahtelinn = env->GetStringUTFChars(lahtelinn, 0);
+    auto paar = maatriksiks(c_failinimi, maxkaugus);
+    std::vector<std::string> linnad = jouame(c_lahtelinn, maxkaugus, laadimistearv, paar.linnad, paar.matrix);
+
+    jclass stringClass = env->FindClass("java/lang/String");
+    jobjectArray stringArray = env->NewObjectArray(linnad.size(), stringClass, 0);
+    for ( int i = 0; i < linnad.size(); ++i ) {
+        std::string s = linnad.at(i);
+        jstring javaString = env->NewStringUTF( s.c_str() );
+        env->SetObjectArrayElement( stringArray, i, javaString);
     }
-    for (int i = 1; i < 500; i++) {
-        sagedus[i] += sagedus[i - 1];
-    }
-    for (int i = suurus - 1; i >= 0; i--) {
-        int esimene = static_cast<int>(isikukoodid2[i] / 10000000000L);
-        int indeks;
-        if (esimene % 2 == 0) {
-            indeks = esimene * 50 + static_cast<int>((isikukoodid2[i] / 100000000) % 100);
-        } else {
-            indeks = (esimene + 1) * 50 + static_cast<int>((isikukoodid2[i] / 100000000) % 100);
-        }
-        sorteeritud[sagedus[indeks] - 1] = isikukoodid2[i];
-        sagedus[indeks]--;
-    }
-    std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
+//    env->ReleaseStringUTFChars(lahtelinn, c_lahtelinn);
+//    env->ReleaseStringUTFChars(failinimi, c_failinimi);
+
+    return stringArray;
 }
-
- /**
-    * @Funktsionaalsus - Rakendab counting sorti algoritmi, et teostada isikukoodide sorteerimist paisktabelis.
-    * @Parameetrid - Isikukoodide vector, "kohaVaartus" isikukoodis sisalduva numbri koht mida võrreldakse, "kohti" on maksimaalne väärtus mida antud number saada võib.
- */
-std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaartus, int kohti) {
-    int suurus = isikukoodid.size();
-    std::vector<int> sagedus(kohti);
-    std::vector<long> sorteeritud(suurus);
-    for (long l : isikukoodid) {
-        int indeks = static_cast<int>((l / kohaVaartus) % 10);
-        sagedus[indeks]++;
-    }
-    for (int i = 1; i < kohti; i++) {
-        sagedus[i] += sagedus[i - 1];
-    }
-    for (int i = suurus - 1; i >= 0; i--) {
-        int indeks = static_cast<int>((isikukoodid[i] / kohaVaartus) % 10);
-        sorteeritud[sagedus[indeks] - 1] = isikukoodid[i];
-        sagedus[indeks]--;
-    }
-    return sorteeritud;
-}
-

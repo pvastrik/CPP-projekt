@@ -17,6 +17,14 @@ JNIEXPORT jint JNICALL Java_Proov_cppTukeldused
 
 /*
  * Class:     Proov
+ * Method:    cppGraafiYlesanne
+ * Signature: (Ljava/lang/String;Ljava/lang/String;II)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_Proov_cppGraafiYlesanne
+  (JNIEnv *, jobject, jstring, jstring, jint, jint);
+
+/*
+ * Class:     Proov
  * Method:    cppJouame
  * Signature: (Ljava/lang/String;II[Ljava/lang/String;[[I)[Ljava/lang/String;
  */

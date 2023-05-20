@@ -56,38 +56,62 @@ public class Proov {
    }
 
     public static void main(String[] args) {
-//         Paar<String[], int[][]> graafMat = maatriksiks("linnade_kaugused.tsv", 1000);
-//         String[] linnad = graafMat.esimene;
-//         int[][] mat = graafMat.teine;
-//         String[] tul = jõuame("Põltsamaa", 64, 2, linnad, mat);
-//         Proov proov = new Proov();
-//
-//         System.out.println(Arrays.toString(tul));
-//         tul = proov.cppJouame("Põltsamaa", 64, 2, linnad, mat);
-//
-//         System.out.println(Arrays.toString(tul));
-//         long n = 10000000L;
-//         double[] s = new double[]{1.0, 2.0, 3.0, 1.0, 2.0, 4.0, 5.0, 2.0 };
-//         //s = annaMassiiv(2000, 1, 14);
-//         var alg = System.currentTimeMillis();
-//         System.out.println(tukeldused(s, 7));
-//         System.out.println("Java aeg: " + (System.currentTimeMillis()-alg));
-//         alg = System.currentTimeMillis();
-//         System.out.println(proov.cppTukeldused(s,7, s.length));
-//         System.out.println("C++ aeg: " + (System.currentTimeMillis()-alg));
-            Proov proov = new Proov();
-            long[] isikud = new long[10000_000];
-            for (int i = 0; i < 10000_000; i++) {
-                isikud[i] = genereeriIsikukood();
-            }
-            //System.out.println(Arrays.toString(isikud));
-            //isikud = new long[]{21207274409L, 82702134101L, 78908120033L, 49203256017L, 77912117196L,65408285011L};
-            long aeg = System.currentTimeMillis();
-            sort(isikud);
-            System.out.println("Java: " + (System.currentTimeMillis() - aeg));
-            aeg = System.currentTimeMillis();
-            proov.cppSortIsikukoodid(isikud);
-            System.out.println("Cpp: " + (System.currentTimeMillis() - aeg));
+        Proov proov = new Proov();
+
+        int n = 2000;
+        double[] s = annaMassiiv(n, 1, 14);
+        System.out.println("Rekursiooni ülesanne:\n");
+
+        var aeg = System.currentTimeMillis();
+        System.out.println(tukeldused(s, 7));
+        System.out.println("Java aeg: " + (System.currentTimeMillis()-aeg) + " ms");
+        aeg = System.currentTimeMillis();
+        System.out.println(proov.cppTukeldused(s,7, s.length));
+        System.out.println("C++ aeg: " + (System.currentTimeMillis()-aeg) + " ms");
+
+        // GRAAFI ÜLESANNE
+        System.out.println("Graafi ülesanne:\n");
+
+        aeg = System.currentTimeMillis();
+        String[] linnadJava = graafiYlesanne("/mnt/c/Users/priid/kool/c++proge/projekt/linnade_kaugused.tsv", "Põltsamaa", 2, 150);
+        System.out.println("Java aeg: " + (System.currentTimeMillis() - aeg) + " ms");
+        aeg = System.currentTimeMillis();
+        String[] linnadCPP = proov.cppGraafiYlesanne("/mnt/c/Users/priid/kool/c++proge/projekt/linnade_kaugused.tsv", "Põltsamaa", 2, 150);
+        System.out.println("C++ aeg: " + (System.currentTimeMillis()-aeg) + " ms");
+
+        System.out.println(Arrays.toString(linnadJava));
+        System.out.println(Arrays.toString(linnadCPP));
+
+
+        // GRAAFI ÜLESANNE VERSIOON 2
+        System.out.println("Graafi ülesanne ilma failita:\n");
+        var paar = maatriksiks("/mnt/c/Users/priid/kool/c++proge/projekt/linnade_kaugused.tsv", 150);
+        aeg = System.currentTimeMillis();
+         linnadJava = jõuame("Põltsamaa", 150, 2, paar.esimene, paar.teine);
+        System.out.println("Java aeg: " + (System.currentTimeMillis() - aeg) + " ms");
+        aeg = System.currentTimeMillis();
+         linnadCPP = proov.cppJouame("Põltsamaa", 150, 2, paar.esimene, paar.teine);
+        System.out.println("C++ aeg: " + (System.currentTimeMillis()-aeg) + " ms");
+
+        System.out.println(Arrays.toString(linnadJava));
+        System.out.println(Arrays.toString(linnadCPP));
+
+        //  ISIKUKOODID
+        
+        System.out.println("Sorteerimise ülesanne:\n");
+
+        long[] isikud = new long[10000_000];
+        for (int i = 0; i < 10000_000; i++) {
+            isikud[i] = genereeriIsikukood();
+        }
+        //System.out.println(Arrays.toString(isikud));
+        //isikud = new long[]{21207274409L, 82702134101L, 78908120033L, 49203256017L, 77912117196L,65408285011L};
+        aeg = System.currentTimeMillis();
+        sort(isikud);
+        System.out.println("Java: " + (System.currentTimeMillis() - aeg) + " ms");
+        aeg = System.currentTimeMillis();
+        proov.cppSortIsikukoodid(isikud);
+        System.out.println("C++ aeg: " + (System.currentTimeMillis()-aeg) + " ms");
 
            }
      /*
@@ -128,7 +152,13 @@ public class Proov {
          saab vaid tabelis nimetatud asulates. Eesmärgiks on koostada programm, mis vastavalt etteaantud
          väärtuse x ja lubatud tankimiste arvu k järgi leiab lähtelinnast alustades need linnad, mis on k
          tankimise kaugusel. Kokkuleppeliselt loeme, et tankimiskordade arv võrdub läbitud kaarte arvuga.
+*/
 
+         public static String[] graafiYlesanne(String failinimi, String lähtelinn, int laadimistearv, int maxkaugus) {
+            var paar = maatriksiks(failinimi, maxkaugus);
+            return jõuame(lähtelinn, maxkaugus, laadimistearv, paar.esimene, paar.teine);
+         }
+/*
         * Meetod antud laadimiste arvu kaugusel olevate linnade leidmiseks
         * Antud: lähtelinn, elektriauto aku suurus (km) k, laadimiskordade arv x, linnade massiiv, graafi esitus maatriksina
         * Tulemus: linnade massiiv, kuhu antu akuga lühim tee võtab täpselt k laadimist ehksiis k linnadevahelist sõitu
@@ -390,6 +420,7 @@ public class Proov {
 
 
     private native int cppTukeldused(double[] a, double p, int length);
+    private native String[] cppGraafiYlesanne(String failinimi, String lähtelinn, int maxkaugus, int laadimistearv);
     private native String[] cppJouame(String lahtelinn, int x, int k, String[] linnad, int[][] m);
     private native long[] cppSortIsikukoodid(long[] isikukoodid);
 }
