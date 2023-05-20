@@ -10,6 +10,10 @@
 #else
 #define TIMER
 #endif
+
+/**
+ * @Funktsioon: Timer, mis mõõdab, kui kaua kood ülesannet lahendab.
+ */
 struct Timer{
     std::chrono::time_point<std::chrono::high_resolution_clock> algus = std::chrono::high_resolution_clock::now();
     Timer() {
@@ -23,7 +27,12 @@ struct Timer{
 };
 
 
-
+/**
+ * @Funktsionaalsus: Teisendab javast tulnud array vectoriks ning teostab traadi jupitamise ülesande lahendamiseks vajaliku töö.
+ * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "a" on Java Array, kus on juppide pikkused.
+ * "p" on minimaalse jupi pikkus. "n" on tükelduste arv.
+ * @Returns: Sorteeritud isikukoodide Java Array.
+ */
 JNIEXPORT jint JNICALL Java_Proov_cppTukeldused(JNIEnv *env, jobject obj, jdoubleArray a, jdouble p, jint n) {
     TIMER();
     double *arrayPtr = env->GetDoubleArrayElements(a, 0);
@@ -32,6 +41,12 @@ JNIEXPORT jint JNICALL Java_Proov_cppTukeldused(JNIEnv *env, jobject obj, jdoubl
 
 }
 
+/**
+ * @Funktsionaalsus: Teisendab javast tulnud informatsiooni ning teostab linnast linna liikumise ülesande.
+ * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "lahtelinn" on linn, kust minema hakkame.
+ * "x" on laadimiskordade arv. "k" on elektriauto aku suurus (km), "linnad" on linnade massiiv, "m" on graafi esitus maatriksina.
+ * @Returns: Java array linnadest, kuhu saame sõita.
+ */
 JNIEXPORT jobjectArray JNICALL Java_Proov_cppJouame(JNIEnv *env, jobject obj, jstring lahtelinn, jint x, jint k, jobjectArray linnad, jobjectArray m) {
     int rows = env->GetArrayLength(m);
     jintArray firstRow = (jintArray)(env->GetObjectArrayElement(m, 0));
@@ -77,6 +92,11 @@ JNIEXPORT jobjectArray JNICALL Java_Proov_cppJouame(JNIEnv *env, jobject obj, js
     return stringArray;
 }
 
+/**
+ * @Funktsionaalsus: Tükeldab rekursiivselt jupi sobivateks pikkusteks.
+ * @Parameetrid: "a" on massiiv, kus on juppide pikkused. "p" on järeloleva traadi pikkus. "min" on minimaalse jupi pikkus. "i" on tükelduste arv. "len" on traadi pikkus.
+ * @Returns: Sorteeritud isikukoodide Java Array.
+ */
 int tukeldusedRek(double *a, double p, double min, int i, int len) {
     int kokku = 0;
     if (p < min) {
@@ -92,6 +112,11 @@ int tukeldusedRek(double *a, double p, double min, int i, int len) {
 
 }
 
+/**
+ * @Funktsionaalsus: Leiab linna indeksi arrays.
+ * @Parameetrid: "arr" on linnade massiiv. "s" on otsitava linna nimi. "n" on .
+ * @Tagastab: Otsitava linna indeksi linnade arrays.
+ */
 int getIndex(std::string *arr, std::string s, int n) {
     std::cout << n<<"\n";
     for (int i = 0; i < n; ++i) {
@@ -100,6 +125,10 @@ int getIndex(std::string *arr, std::string s, int n) {
     return -1;
 }
 
+/**
+ * @Funktsionaalsus: Loob linnade maatriksist graafi.
+ * @Parameetrid: "m" on maatriks. "max" on maksimaalne pikkus. "graaf" on graaf mida hakkame looma.
+ */
 void looGraafMaatriksist(std::vector<std::vector<int>*> *m, int max, std::vector<Tipp> *graaf) {
     int length = m->size();
     std::cout<<length<<"\n";
@@ -129,6 +158,12 @@ void looGraafMaatriksist(std::vector<std::vector<int>*> *m, int max, std::vector
     }
 }
 
+
+/**
+ * @Funktsioon: Meetod antud laadimiste arvu kaugusel olevate linnade leidmiseks
+ * @Parameetrid: lähtelinn, laadimiskordade arv x, elektriauto aku suurus (km) k, linnade massiiv, linnade hulk ,graafi esitus maatriksina, graaf ise, array linnadest kuhu saame sõita.
+ * @Tulemus: linnade massiiv, kuhu antu akuga lühim tee võtab täpselt k laadimist ehksiis k linnadevahelist sõitu
+ * */
 void jouame(std::string lahtelinn, int x, int k, std::string *linnad, int linnu, std::vector<std::vector<int>*> *m, std::vector<Tipp> *graaf, std::vector<std::string> *saab){
     int lahte = getIndex(linnad, lahtelinn, linnu);
     std::vector<Tipp> labitud;
@@ -166,13 +201,20 @@ bool operator==(const Tipp &t1, const Tipp &t2) {
 }
 
 
-/***********************************************/
 
+
+/*****************ISIKUKOODIDE SORTEERIMINE*********************/
+
+//Eeldefineerimised
 void sort(std::vector<long>& isikukoodid);
 
 std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaartus, int kohti);
 
-
+/**
+    * @Funktsionaalsus: Teisendab javast tulnud array vectoriks, teostab vajaliku töö ning konventeerib seejärel tagasi.
+    * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "a" on Java Array, kus on isikukoodid.
+    * @Returns: Sorteeritud isikukoodide Java Array.
+ */
 JNIEXPORT jlongArray JNICALL Java_Proov_cppSortIsikukoodid(JNIEnv *env, jobject obj, jlongArray a){
 TIMER();
     jsize size = env->GetArrayLength( a );
@@ -186,6 +228,13 @@ TIMER();
 
 }
 
+/**
+    * @Funktsionaalsus: Sorteerib isikukoodid sünniaja järgi
+    * a) järjestuse aluseks on sünniaeg, vanemad inimesed on eespool.
+    * b) kui sünniajad on võrdsed, määrab järjestuse isikukoodi järjekorranumber (kohad 8-10).
+    * c) kui ka järjekorranumber on võrdne, siis määrab järjestuse esimene number.
+    * @Parameetrid: isikukoodid sorteeritav isikukoodide massiiv
+ */
 void sort(std::vector<long>& isikukoodid) {
     int suurus = isikukoodid.size();
     std::vector<int> sagedus(2);
@@ -241,6 +290,10 @@ void sort(std::vector<long>& isikukoodid) {
     std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
 }
 
+ /**
+    * @Funktsionaalsus - Rakendab counting sorti algoritmi, et teostada isikukoodide sorteerimist paisktabelis.
+    * @Parameetrid - Isikukoodide vector, "kohaVaartus" isikukoodis sisalduva numbri koht mida võrreldakse, "kohti" on maksimaalne väärtus mida antud number saada võib.
+ */
 std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaartus, int kohti) {
     int suurus = isikukoodid.size();
     std::vector<int> sagedus(kohti);

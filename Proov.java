@@ -220,6 +220,21 @@ public class Proov {
         return new Random().doubles(n, min, max).toArray();
     }
 
+
+     /**
+          * Genereerib isikukoodi lähtudes reeglitest püstitatud <a href=https://et.wikipedia.org/wiki/Isikukood>siin.</a>
+          * <br>
+          * Numbrite tähendused:
+          * <ul style="list-style-type:none">
+          *      <li> 1 - sugu ja sünniaasta esimesed kaks numbrit, (1...8) </li>
+          *      <li> 2-3 - sünniaasta 3. ja 4. numbrid, (00...99) </li>
+          *      <li> 4-5 - sünnikuu, (01...12) </li>
+          *      <li> 6-7 - sünnikuupäev (01...31) </li>
+          *      <li> 8-10 - järjekorranumber samal päeval sündinute eristamiseks (000...999) </li>
+          *      <li> 11 - kontrollnumber (0...9) </li> </ul>
+          *
+          * @return Eesti isikukoodi reeglitele vastav isikukood
+     */
      static long genereeriIsikukood() {
             java.util.concurrent.ThreadLocalRandom juhus = java.util.concurrent.ThreadLocalRandom.current();
             Calendar kalender = new java.util.GregorianCalendar();
@@ -241,13 +256,14 @@ public class Proov {
                 kontroll = kontroll < 10 ? kontroll : 0;
             }
             return kood * 10 + kontroll;
-        }
+     }
 
 
+     /**
+         * @Funktsionaalsus - Rakendab counting sorti algoritmi, et teostada isikukoodide sorteerimist paisktabelis.
+         * @Parameetrid - Isikukoodide list, listi suurus, "place" isikukoodis sisalduva numbri koht, "vahemik" maksimaalne väärtus mida antud number saada võib.
+     */
     static void countingSort(List<Long> array, int size, long place, int vahemik) {
-        /**
-         * @Funk - Rakendab counting sort
-         */
         long[] output = new long[size + 1];
         long max = array.get(0);
         for (int i = 1; i < size; i++) {
@@ -276,17 +292,13 @@ public class Proov {
     }
 
 
-    //Jaga kohe alguses 1 ja 2, 3 ja 4, 5 ja 6 jne ära ja käsitle neid eraldi.
+    /**
+    * @Funktsionaalsus: Sorteerib isikukoodid paisktabelina ära.
+    * @Parameetrid: List isikukoodidest, listi pikkus.
+    * @Tagastab: Sorteeritud listi.
+    */
     static List<Long> radixSort(List<Long> list, int size) {
-        // Get maximum element
-        long max = 8991231999L;
-        /**Arrays.stream(array).forEach(id -> {
-            id /= 10;
-            System.out.println(id);
-        });*/
 
-        // Apply counting sort to sort elements based on place value.
-        //for (int place = 1; max / place > 10; place *= 10)
         countingSort(list, size, 1,10); //10
         countingSort(list, size, 10,10); //10
         countingSort(list, size, 100,10); //10
@@ -309,14 +321,11 @@ public class Proov {
      *     <li>b) kui sünniajad on võrdsed, määrab järjestuse isikukoodi järjekorranumber (kohad 8-10);</li>
      *     <li>c) kui ka järjekorranumber on võrdne, siis määrab järjestuse esimene number.</li>
      * </ul>
-     * @param isikukoodid sorteeritav isikukoodide massiiv
+     *
+     * param isikukoodid sorteeritav isikukoodide massiiv
      */
     public static void sort(long[] isikukoodid){
-        /**radixSort(isikukoodid, isikukoodid.length);
-        for (int i = 0; i < isikukoodid.length; i++) {
-            int kontroll=security(isikukoodid[i]);
-            isikukoodid[i]=isikukoodid[i]*10+kontroll;
-        }*/
+
         List<Long> list= new ArrayList<>();
         for (int i = 0; i < isikukoodid.length; i++) {
             list.add(isikukoodid[i]);
