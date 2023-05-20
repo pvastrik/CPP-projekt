@@ -198,16 +198,16 @@ void sort(std::vector<long>& isikukoodid) {
     }
     std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
     std::vector<long> isikukoodid2 = isikukoodid;
-    long kohaVäärtus = 10L;
+    long kohaVaartus = 10L;
     for (int i = 0; i < 4; i++) {
-        isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 10);
-        kohaVäärtus *= 10L;
+        isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 10);
+        kohaVaartus *= 10L;
     }
-    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 4);
-    kohaVäärtus *= 10L;
-    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 10);
-    kohaVäärtus *= 10L;
-    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVäärtus, 2);
+    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 4);
+    kohaVaartus *= 10L;
+    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 10);
+    kohaVaartus *= 10L;
+    isikukoodid2 = loendamisMeetod(isikukoodid2, kohaVaartus, 2);
 
     sagedus = std::vector<int>(500);
     for (long isik : isikukoodid2) {
@@ -237,19 +237,19 @@ void sort(std::vector<long>& isikukoodid) {
     std::copy(sorteeritud.begin(), sorteeritud.end(), isikukoodid.begin());
 }
 
-std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVäärtus, int kohti) {
+std::vector<long> loendamisMeetod(std::vector<long>& isikukoodid, long kohaVaartus, int kohti) {
     int suurus = isikukoodid.size();
     std::vector<int> sagedus(kohti);
     std::vector<long> sorteeritud(suurus);
     for (long l : isikukoodid) {
-        int indeks = static_cast<int>((l / kohaVäärtus) % 10);
+        int indeks = static_cast<int>((l / kohaVaartus) % 10);
         sagedus[indeks]++;
     }
     for (int i = 1; i < kohti; i++) {
         sagedus[i] += sagedus[i - 1];
     }
     for (int i = suurus - 1; i >= 0; i--) {
-        int indeks = static_cast<int>((isikukoodid[i] / kohaVäärtus) % 10);
+        int indeks = static_cast<int>((isikukoodid[i] / kohaVaartus) % 10);
         sorteeritud[sagedus[indeks] - 1] = isikukoodid[i];
         sagedus[indeks]--;
     }
