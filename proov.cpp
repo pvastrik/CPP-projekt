@@ -37,7 +37,11 @@ struct Timer{
  */
 JNIEXPORT jint JNICALL Java_Proov_cppTukeldused(JNIEnv *env, jobject obj, jdoubleArray a, jdouble p, jint n) {
     double *arrayPtr = env->GetDoubleArrayElements(a, 0);
+    auto algus = std::chrono::high_resolution_clock::now();
     std::sort(arrayPtr, arrayPtr+n);
+    auto lopp = std::chrono::high_resolution_clock::now();
+    auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
+    std::cout << "Aega kulus: " << aeg.count() <<" ms\n";
     return tukeldusedRek(arrayPtr, p, arrayPtr[0], 0, n);
 
 }
@@ -126,7 +130,11 @@ JNIEXPORT jobjectArray JNICALL Java_Proov_cppGraafiYlesanne(JNIEnv *env, jobject
     std::string c_failinimi = env->GetStringUTFChars(failinimi, 0);
     std::string c_lahtelinn = env->GetStringUTFChars(lahtelinn, 0);
     auto paar = maatriksiks(c_failinimi, maxkaugus);
+
+    auto algus = std::chrono::high_resolution_clock::now();
     std::vector<std::string> linnad = jouame(c_lahtelinn, maxkaugus, laadimistearv, paar.linnad, paar.matrix);
+    auto lopp = std::chrono::high_resolution_clock::now();
+    auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
 
     jclass stringClass = env->FindClass("java/lang/String");
     jobjectArray stringArray = env->NewObjectArray(linnad.size(), stringClass, 0);

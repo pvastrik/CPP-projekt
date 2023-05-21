@@ -3,13 +3,16 @@ Meie projekti eesmärk on võrrelda Java ja C++ keeltes nii keerulisemate kui ka
 Selleks oleme valinud mõned ülesanded, mida lahendada nii Javas kui ka C++-s ning proovida C++-s neid lahendusi 
 optimiseerida nii palju kui võimalik ning loodetavasti saama programmid kiiremini tööle.
 
-Hetkel oleme lihtsalt tegelenud Java kaudu C++ funktsioonide väljakutsumist ning funktsioonid on põhimõtteliselt
-täpselt samamoodi ülesehitatud mõlemas keeles, kuid keeltevahelise liikumise tõttu on C++ kaudu väljakutsutud funktsioonid
-aeglasemad. Siiski usume, et optimiseerides ning ka keerulisemaid ülesaneid valides, saame neid piisavalt optimiseerida.
+Leidsime, et C++ jooksutatud lahendused on keskmiselt kaks-kolm korda kiirem kui Javas tehtud lahendused.
+Proovisime ka C++ koode optimiseerida, et kiiruse erinevus veel selgemalt välja tuleks. Kiirusevahe tuleb kõige paremini
+välja just raskemate ülesannete puhul, kus on rohkem suhtlust mäluga.
+
+Ülesanded valisime ainest LTAT.03.005 "Algoritmid ja Andmestruktuurid".
+
+Java ja C++ ühildamiseks kasutasime JNI ehk Java Native Interface'i.
 
 Ülesannete kirjeldused on vastavate Java meetodite juures.
 
-Lahendused on veel puudulikud, graafi ülesanne veel C++-s ei lahendu.
 ## Kompileerimine
 
 Projekt kasutab Javat ja C++, käima saamiseks on seega vaja
