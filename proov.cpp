@@ -14,22 +14,6 @@
 #endif
 
 /**
- * @Funktsioon: Timer, mis mõõdab, kui kaua kood ülesannet lahendab.
- */
-struct Timer{
-    std::chrono::time_point<std::chrono::high_resolution_clock> algus = std::chrono::high_resolution_clock::now();
-    Timer() {
-        algus = std::chrono::high_resolution_clock::now();
-    }
-    ~Timer() {
-        auto lopp = std::chrono::high_resolution_clock::now();
-        auto aeg = std::chrono::duration_cast<std::chrono::milliseconds>(lopp - algus);
-        std::cout << "Aega kulus: " << aeg.count() <<"\n";
-    }
-};
-
-
-/**
  * @Funktsionaalsus: Teisendab javast tulnud array vectoriks ning teostab traadi jupitamise ülesande lahendamiseks vajaliku töö.
  * @Parameetrid: "env" ja "obj" on JNI muutujad ja on vajalikud meetodi tööks. "a" on Java Array, kus on juppide pikkused.
  * "p" on minimaalse jupi pikkus. "n" on tükelduste arv.
